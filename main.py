@@ -43,7 +43,7 @@ async def on_ready():
         logger.info(f"Συγχρονίστηκαν {len(synced)} slash commands.")
     except Exception as e:
         logger.error(f"Αποτυχία συγχρονισμού commands: {e}")
-    await bot.change_presence(activity=discord.Activity(type=discord.ActivityType.watching, name="made by !3mma"))
+    await bot.change_presence(activity=discord.Activity(type=discord.ActivityType.watching, name="made by ! 3mma"))
 
 
 async def main():
