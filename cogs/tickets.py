@@ -66,10 +66,13 @@ async def _send_ticket_log(bot: commands.Bot, *, action: str, ticket_type: str, 
 class TicketControlView(discord.ui.LayoutView):
     """Persistent view shown INSIDE an open ticket channel. Close + Ping User buttons."""
 
-    def __init__(self):
+    def __init__(self, owner: discord.abc.User | None = None):
         super().__init__(timeout=None)
 
         container = discord.ui.Container(accent_color=config.COLOR_INFO)
+
+        if owner is not None:
+            container.add_item(discord.ui.TextDisplay(f"{owner.mention}"))
 
         section = discord.ui.Section(
             "## 🎫 Ticket Controls",
@@ -211,7 +214,7 @@ async def open_ticket(interaction: discord.Interaction, *, ticket_type: str, cat
     category = guild.get_channel(category_id)
     if category is None or not isinstance(category, discord.CategoryChannel):
         await interaction.followup.send(
-            "⚠️ Η κατηγορία για αυτό το ticket δεν βρέθηκε.", ephemeral=True
+            "⚠️ Η κατηγορία για αυτό το ticket δεν βρέθηκε. Ενημέρωσε το staff.", ephemeral=True
         )
         return
 
@@ -240,8 +243,13 @@ async def open_ticket(interaction: discord.Interaction, *, ticket_type: str, cat
         created_at=datetime.datetime.now(datetime.timezone.utc).isoformat(),
     )
 
-    control_view = TicketControlView()
-    await channel.send(content=f"{user.mention}", view=control_view)
+    control_view = TicketControlView(owner=user)
+    try:
+        await channel.send(view=control_view)
+    except discord.HTTPException as e:
+        # Fallback: αν αποτύχει το Components V2 panel για οποιονδήποτε λόγο,
+        # τουλάχιστον ειδοποίησε τον χρήστη με απλό μήνυμα ώστε το ticket να μην είναι άδειο.
+        await channel.send(f"{user.mention} ⚠️ Σφάλμα εμφάνισης panel: {e}")
 
     await _send_ticket_log(
         interaction.client,
