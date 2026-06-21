@@ -54,27 +54,27 @@ class Moderation(commands.Cog):
         self.bot = bot
 
     # ---------- /kick ----------
-    @app_commands.command(name="kick", description="Κάνει kick έναν χρήστη από τον server")
-    @app_commands.describe(member="Ο χρήστης προς αποβολή", reason="Ο λόγος της αποβολής")
+    @app_commands.command(name="kick", description="Κάνει kick χρήστη από τον server")
+    @app_commands.describe(member="Banned User", reason="Reason")
     @staff_or_ownership_check()
     async def kick(self, interaction: discord.Interaction, member: discord.Member, reason: str = "Δεν δόθηκε λόγος"):
         if member.id == interaction.user.id:
             await interaction.response.send_message("🚫 Δεν μπορείς να κάνεις kick τον εαυτό σου.", ephemeral=True)
             return
         if member.top_role >= interaction.user.top_role and interaction.user.id != interaction.guild.owner_id:
-            await interaction.response.send_message("🚫 Δεν μπορείς να κάνεις kick αυτόν τον χρήστη (ίσος ή υψηλότερος ρόλος).", ephemeral=True)
+            await interaction.response.send_message("🚫 Δεν μπορείς να κάνεις kick αυτόν τον χρήστη.", ephemeral=True)
             return
 
         try:
             await member.kick(reason=f"{reason} | Moderator: {interaction.user}")
         except discord.Forbidden:
-            await interaction.response.send_message("⚠️ Δεν έχω δικαίωμα να κάνω kick αυτόν τον χρήστη.", ephemeral=True)
+            await interaction.response.send_message("⚠️ Δεν έχεισ δικαίωμα να κάνεις kick αυτόν τον χρήστη.", ephemeral=True)
             return
         except discord.HTTPException as e:
-            await interaction.response.send_message(f"⚠️ Σφάλμα: {e}", ephemeral=True)
+            await interaction.response.send_message(f"⚠️ Error: {e}", ephemeral=True)
             return
 
-        await interaction.response.send_message(f"✅ Ο/Η {member.mention} αποβλήθηκε. Λόγος: {reason}")
+        await interaction.response.send_message(f"✅ Ο/Η {member.mention} Banned. Λόγος: {reason}")
         await _log_mod_action(
             self.bot, channel_id=config.KICK_LOG_CHANNEL_ID, title="👢 Member Kicked",
             color=config.COLOR_WARNING, moderator=interaction.user, target=member, reason=reason,
@@ -82,20 +82,20 @@ class Moderation(commands.Cog):
 
     # ---------- /timeout ----------
     @app_commands.command(name="timeout", description="Βάζει timeout σε έναν χρήστη")
-    @app_commands.describe(member="Ο χρήστης", duration="Διάρκεια π.χ. 10m, 1h, 2d", reason="Ο λόγος")
+    @app_commands.describe(member="Ο User", duration="Διάρκεια π.χ. 10m, 1h, 2d", reason="Ο λόγος")
     @staff_or_ownership_check()
     async def timeout(self, interaction: discord.Interaction, member: discord.Member, duration: str, reason: str = "Δεν δόθηκε λόγος"):
         if member.id == interaction.user.id:
             await interaction.response.send_message("🚫 Δεν μπορείς να βάλεις timeout στον εαυτό σου.", ephemeral=True)
             return
         if member.top_role >= interaction.user.top_role and interaction.user.id != interaction.guild.owner_id:
-            await interaction.response.send_message("🚫 Δεν μπορείς να βάλεις timeout σε αυτόν τον χρήστη (ίσος ή υψηλότερος ρόλος).", ephemeral=True)
+            await interaction.response.send_message("🚫 Δεν μπορείς να βάλεις timeout σε αυτόν τον χρήστη.", ephemeral=True)
             return
 
         delta = parse_duration(duration)
         if delta is None:
             await interaction.response.send_message(
-                "⚠️ Μη έγκυρη διάρκεια. Χρησιμοποίησε π.χ. `10m`, `1h`, `2d` (max 28d).", ephemeral=True
+                "⚠️ Λάθοσ χρόνος. Χρησιμοποίησε --> `10m`, `1h`, `2d` (max 28d).", ephemeral=True
             )
             return
         if delta > datetime.timedelta(days=28):
@@ -105,10 +105,10 @@ class Moderation(commands.Cog):
         try:
             await member.timeout(delta, reason=f"{reason} | Moderator: {interaction.user}")
         except discord.Forbidden:
-            await interaction.response.send_message("⚠️ Δεν έχω δικαίωμα να κάνω timeout αυτόν τον χρήστη.", ephemeral=True)
+            await interaction.response.send_message("⚠️ Δεν έχεις δικαίωμα να κάνεις timeout αυτόν τον χρήστη.", ephemeral=True)
             return
         except discord.HTTPException as e:
-            await interaction.response.send_message(f"⚠️ Σφάλμα: {e}", ephemeral=True)
+            await interaction.response.send_message(f"⚠️ Error: {e}", ephemeral=True)
             return
 
         await interaction.response.send_message(f"✅ Ο/Η {member.mention} πήρε timeout για {duration}. Λόγος: {reason}")
@@ -127,16 +127,16 @@ class Moderation(commands.Cog):
             await interaction.response.send_message("🚫 Δεν μπορείς να κάνεις ban τον εαυτό σου.", ephemeral=True)
             return
         if member.top_role >= interaction.user.top_role and interaction.user.id != interaction.guild.owner_id:
-            await interaction.response.send_message("🚫 Δεν μπορείς να κάνεις ban αυτόν τον χρήστη (ίσος ή υψηλότερος ρόλος).", ephemeral=True)
+            await interaction.response.send_message("🚫 Δεν μπορείς να κάνεις ban αυτόν τον χρήστη.", ephemeral=True)
             return
 
         try:
             await member.ban(reason=f"{reason} | Moderator: {interaction.user}", delete_message_days=delete_days)
         except discord.Forbidden:
-            await interaction.response.send_message("⚠️ Δεν έχω δικαίωμα να κάνω ban αυτόν τον χρήστη.", ephemeral=True)
+            await interaction.response.send_message("⚠️ Δεν έχεις δικαίωμα να κάνεις ban αυτόν τον χρήστη.", ephemeral=True)
             return
         except discord.HTTPException as e:
-            await interaction.response.send_message(f"⚠️ Σφάλμα: {e}", ephemeral=True)
+            await interaction.response.send_message(f"⚠️ Error: {e}", ephemeral=True)
             return
 
         await interaction.response.send_message(f"✅ Ο/Η {member.mention} έφαγε ban. Λόγος: {reason}")
@@ -163,28 +163,28 @@ class Moderation(commands.Cog):
             await interaction.response.send_message("⚠️ Ο χρήστης δεν βρέθηκε ή δεν είναι banned.", ephemeral=True)
             return
         except discord.Forbidden:
-            await interaction.response.send_message("⚠️ Δεν έχω δικαίωμα να κάνω unban.", ephemeral=True)
+            await interaction.response.send_message("⚠️ Δεν έχεις δικαίωμα να κάνεις unban.", ephemeral=True)
             return
         except discord.HTTPException as e:
-            await interaction.response.send_message(f"⚠️ Σφάλμα: {e}", ephemeral=True)
+            await interaction.response.send_message(f"⚠️ Error: {e}", ephemeral=True)
             return
 
-        await interaction.response.send_message(f"✅ Ο/Η {user.mention} ξαναμπήκε (unban). Λόγος: {reason}")
+        await interaction.response.send_message(f"✅ Ο/Η {user.mention} έγινε unbanned. Λόγος: {reason}")
         await _log_mod_action(
             self.bot, channel_id=config.BAN_LOG_CHANNEL_ID, title="🔓 Member Unbanned",
             color=config.COLOR_SUCCESS, moderator=interaction.user, target=user, reason=reason,
         )
 
     # ---------- /say (ownership only) ----------
-    @app_commands.command(name="say", description="Ο bot στέλνει το μήνυμα που γράφεις (CEO/COO/CTO μόνο)")
-    @app_commands.describe(message="Το μήνυμα προς αποστολή", channel="Το channel (προαιρετικό, default = εδώ)")
+    @app_commands.command(name="say", description="Ο bot στέλνει το μήνυμα που γράφεις")
+    @app_commands.describe(message="Το μήνυμα προς αποστολή")
     @ownership_check()
     async def say(self, interaction: discord.Interaction, message: str, channel: discord.TextChannel = None):
         target_channel = channel or interaction.channel
         try:
             await target_channel.send(message)
         except discord.HTTPException as e:
-            await interaction.response.send_message(f"⚠️ Σφάλμα: {e}", ephemeral=True)
+            await interaction.response.send_message(f"⚠️ Error: {e}", ephemeral=True)
             return
         await interaction.response.send_message(f"✅ Στάλθηκε στο {target_channel.mention}.", ephemeral=True)
 
