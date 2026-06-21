@@ -211,7 +211,7 @@ async def open_ticket(interaction: discord.Interaction, *, ticket_type: str, cat
     category = guild.get_channel(category_id)
     if category is None or not isinstance(category, discord.CategoryChannel):
         await interaction.followup.send(
-            "⚠️ Η κατηγορία για αυτό το ticket δεν βρέθηκε. Ενημέρωσε το staff.", ephemeral=True
+            "⚠️ Η κατηγορία για αυτό το ticket δεν βρέθηκε.", ephemeral=True
         )
         return
 
