@@ -15,7 +15,7 @@ def _int(name: str) -> int:
 
 
 # ---------- Bot ----------
-BOT_TOKEN = os.getenv("BOT_TOKEN", "")
+BOT_TOKEN = os.getenv("BOT_TOKEN")
 
 # ---------- Roles ----------
 STAFF_ROLE_ID = _int("STAFF_ROLE_ID")
